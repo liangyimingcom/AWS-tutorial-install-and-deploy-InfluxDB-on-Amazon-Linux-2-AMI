@@ -1,6 +1,6 @@
-AWS教程-在Amazon Linux 2 AMI上安装部署InfluxDB
+# AWS教程-在Amazon Linux 2 AMI上安装部署InfluxDB
 
-**一、简介**
+## 一、简介
 
 InfluxDB 是使用 GO
 编写的基于时间序列的数据库，用于存储大量带有时间戳的数据，报错 DevOps
@@ -19,13 +19,10 @@ InfluxDB 是使用 GO
 
 InfluxDB 与传统数据库（如：MySQL）的一些区别，以及对应理解：
 
-InfluxDB \| 传统数据库中的概念
-
-database \| 数据库
-
-measurement \| 数据库中的表
-
-points \| 表里面的一行数据
+    InfluxDB \| 传统数据库中的概念
+    database \| 数据库
+    measurement \| 数据库中的表
+    points \| 表里面的一行数据
 
 **3、特有概念**
 
@@ -69,7 +66,7 @@ tags \| 表中的索引：地区，海拔
 
 -   8088：集群端口 (单机版用不到)
 
-**二、安装并启动**
+## 二、安装并启动
 
 **1. 基于 Amazon Linux 2 AMI上安装部署InfluxDB**
 
@@ -82,162 +79,152 @@ sudo yum localinstall influxdb-0.13.0.x86\_64.rpm
 
 **2、启动**
 
-\# start and enable influxdb
+    # start and enable influxdb
 
-sudo systemctl start influxdb
+    sudo systemctl start influxdb
 
-sudo systemctl enable influxdb
+    sudo systemctl enable influxdb
 
-sudo systemctl status influxdb
+    sudo systemctl status influxdb
 
-**三、客户端命令操作（基本语法）**
+## 三、客户端命令操作（基本语法）
 
-\# 通过 influx 命令进入 cli 命令行
+    # 通过 influx 命令进入 cli 命令行
+    influx
+    Connected to http://localhost:8086 version 1.4.2
+    InfluxDB shell version: 1.4.2
 
-influx
+    \>
 
-Connected to http://localhost:8086 version 1.4.2
+    \# 查看用户
+    SHOW USERS
 
-InfluxDB shell version: 1.4.2
+    \# 创建用户
+    CREATE USER influx WITH PASSWORD \'influx\' WITH ALL PRIVILEGES
 
-\>
+    \# 查看用户
+    SHOW USERS
 
-\# 查看用户
+    \# 创建数据库
+    CREATE DATABASE test
 
-SHOW USERS
+    \# 查看数据库
+    SHOW DATABASES
 
-\# 创建用户
+    \# Using 数据库
+    USE test
 
-CREATE USER influx WITH PASSWORD \'influx\' WITH ALL PRIVILEGES
+    \# 插入数据
+    INSERT cpu,host=192.168.1.1 load=0.1,usage=0.2
 
-\# 查看用户
+    \# 查询所有数据
 
-SHOW USERS
+    SELECT \* FROM \"cpu\"
 
-\# 创建数据库
+    SELECT \"host\",\"load\",\"usage\" FROM \"cpu\"
 
-CREATE DATABASE test
+    \# 根据条件查询
 
-\# 查看数据库
+    SELECT \"host\",\"load\",\"usage\" FROM \"cpu\" WHERE \"host\" =
+    \'192.168.1.1\'
 
-SHOW DATABASES
+    SELECT \"host\",\"load\",\"usage\" FROM \"cpu\" WHERE \"usage\" \> 0.1
 
-\# Using 数据库
+    \# 创建数据库
 
-USE test
+    CREATE DATABASE \"db\_name\"
 
-\# 插入数据
+    \# 显示所有数据库
 
-INSERT cpu,host=192.168.1.1 load=0.1,usage=0.2
+    SHOW DATABASES
 
-\# 查询所有数据
+    \# 删除数据库
 
-SELECT \* FROM \"cpu\"
+    DROP DATABASE \"db\_name\"
 
-SELECT \"host\",\"load\",\"usage\" FROM \"cpu\"
+    \# 使用数据库
 
-\# 根据条件查询
+    USE mydb
 
-SELECT \"host\",\"load\",\"usage\" FROM \"cpu\" WHERE \"host\" =
-\'192.168.1.1\'
+    \# 显示该数据库中的表
 
-SELECT \"host\",\"load\",\"usage\" FROM \"cpu\" WHERE \"usage\" \> 0.1
+    SHOW MEASUREMENTS
 
-\# 创建数据库
+    \# 删除表
 
-CREATE DATABASE \"db\_name\"
+    DROP MEASUREMENT \"t\_name\"
 
-\# 显示所有数据库
+    \# 简单查询
 
-SHOW DATABASES
+    SELECT \* FROM codis\_usage ORDER BY time DESC LIMIT 3
 
-\# 删除数据库
+    \# 最近 60min 内的数据
 
-DROP DATABASE \"db\_name\"
+    SELECT \* FROM codis\_usage WHERE time \>= now() - 60m;
 
-\# 使用数据库
+    \# 获取最近更新数据，并转换为当前时间
 
-USE mydb
+    precision rfc3339
 
-\# 显示该数据库中的表
+    select \* from codis\_usage order by time desc limit 10;
 
-SHOW MEASUREMENTS
+    \# 查询保存策略
 
-\# 删除表
+    show retention policies on codis
 
-DROP MEASUREMENT \"t\_name\"
+    name duration shardGroupDuration replicaN default
 
-\# 简单查询
+    \-\-\-- \-\-\-\-\-\-\-- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+    \-\-\-\-\-\-\-- \-\-\-\-\-\--
 
-SELECT \* FROM codis\_usage ORDER BY time DESC LIMIT 3
+    autogen 0s 168h0m0s 1 true
 
-\# 最近 60min 内的数据
+    \# 创建新的 Retention Policies 并设置为默认值
 
-SELECT \* FROM codis\_usage WHERE time \>= now() - 60m;
+    \# duration 保留多少天
 
-\# 获取最近更新数据，并转换为当前时间
+    \# replication 副本数
 
-precision rfc3339
+    create retention policy \"rp\_14d\" ON \"codis\" duration 14d
+    replication 1 default
 
-select \* from codis\_usage order by time desc limit 10;
+    \# 恢复默认策略（永久保存）
 
-\# 查询保存策略
+    alter retention policy \"autogen\" on \"codis\" duration 0s replication
+    1 default
 
-show retention policies on codis
+    \# 创建数据库 API
 
-name duration shardGroupDuration replicaN default
+    curl -i -XPOST http://localhost:8086/query \--data-urlencode \"q=CREATE
+    DATABASE test\"
 
-\-\-\-- \-\-\-\-\-\-\-- \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
-\-\-\-\-\-\-\-- \-\-\-\-\-\--
+    \# 写入数据 API
 
-autogen 0s 168h0m0s 1 true
+    \# 写入单条
 
-\# 创建新的 Retention Policies 并设置为默认值
+    curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
+    \"cpu,host=192.168.1.3 load=0.1,usage=0.33\"
 
-\# duration 保留多少天
+    curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
+    \"cpu,host=192.168.1.3 load=0.1,usage=0.33 6666666666666666666\"
 
-\# replication 副本数
+    \# 写入多条
 
-create retention policy \"rp\_14d\" ON \"codis\" duration 14d
-replication 1 default
+    curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
+    \"cpu,host=192.168.1.2 load=0.1,usage=0.22 1666666666666666661
 
-\# 恢复默认策略（永久保存）
+    cpu,host=192.168.1.3 load=0.1,usage=0.33 1666666666666666661
 
-alter retention policy \"autogen\" on \"codis\" duration 0s replication
-1 default
+    cpu,host=192.168.1.2 load=0.2,usage=0.22 1666666666666666662
 
-\# 创建数据库 API
+    cpu,host=192.168.1.3 load=0.2,usage=0.33 1666666666666666662\"
 
-curl -i -XPOST http://localhost:8086/query \--data-urlencode \"q=CREATE
-DATABASE test\"
+    \# 查询数据 API
 
-\# 写入数据 API
+    curl -G http://localhost:8086/query?db=test \--data-urlencode \"q=SELECT
+    \* FROM \\\"cpu\\\"\"
 
-\# 写入单条
-
-curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
-\"cpu,host=192.168.1.3 load=0.1,usage=0.33\"
-
-curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
-\"cpu,host=192.168.1.3 load=0.1,usage=0.33 6666666666666666666\"
-
-\# 写入多条
-
-curl -i -XPOST http://localhost:8086/write?db=test \--data-binary
-\"cpu,host=192.168.1.2 load=0.1,usage=0.22 1666666666666666661
-
-cpu,host=192.168.1.3 load=0.1,usage=0.33 1666666666666666661
-
-cpu,host=192.168.1.2 load=0.2,usage=0.22 1666666666666666662
-
-cpu,host=192.168.1.3 load=0.2,usage=0.33 1666666666666666662\"
-
-\# 查询数据 API
-
-curl -G http://localhost:8086/query?db=test \--data-urlencode \"q=SELECT
-\* FROM \\\"cpu\\\"\"
-
-**四、可视化客户端安装与访问**
+## 四、可视化客户端安装与访问
 
 Windows客户端为绿色版，下载解压打开即可。下载地址：[Releases ·
 CymaticLabs/InfluxDBStudio](https://github.com/CymaticLabs/InfluxDBStudio/releases)
@@ -252,7 +239,7 @@ InfluxDBStudio](https://cloud.tencent.com/developer/article/1444098)
 generated](images/media/image1.png){width="5.162392825896763in"
 height="3.8222222222222224in"}
 
-**五、备份恢复**
+## 五、备份恢复
 
 只支持全量备份，不支持增量，包括了元数据以及增量数据的备份，可以参考
 官方文档
