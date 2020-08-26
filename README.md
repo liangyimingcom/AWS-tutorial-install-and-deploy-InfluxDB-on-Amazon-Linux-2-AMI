@@ -66,10 +66,9 @@ InfluxDB 与传统数据库（如：MySQL）的一些区别，以及对应理解
 
 **1. 基于 Amazon Linux 2 AMI上安装部署InfluxDB**
 
-wget
-https://dl.influxdata.com/influxdb/releases/influxdb-1.8.2.x86\_64.rpm
-
-sudo yum localinstall influxdb-0.13.0.x86\_64.rpm
+    wget
+    https://dl.influxdata.com/influxdb/releases/influxdb-1.8.2.x86\_64.rpm
+    sudo yum localinstall influxdb-0.13.0.x86\_64.rpm
 
 全部版本的InfluxDB安装包，请参考这里：https://repos.influxdata.com/centos/8/x86\_64/stable/
 
