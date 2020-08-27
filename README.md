@@ -19,12 +19,12 @@ InfluxDB 是使用 GO
 
 InfluxDB 与传统数据库（如：MySQL）的一些区别，以及对应理解：
 
-    | 项目        | 描述  |  
-    | --------   | -------  | 
-    | InfluxDB | 传统数据库中的概念| 
-    | database | 数据库| 
-    | measurement | 数据库中的表| 
-    | points | 表里面的一行数据| 
+| 项目 | 描述  |  
+| --------   | -------  | 
+| InfluxDB | 传统数据库中的概念| 
+| database | 数据库| 
+| measurement | 数据库中的表| 
+| points | 表里面的一行数据| 
 
 **3、特有概念**
 
